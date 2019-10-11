@@ -1,8 +1,8 @@
 # Computer-Vision-Course#
 #########################
-#Arash Safavi           #
-########                #
-#####################   #
+#Seyed Arash Safavi     #
+#3274904                #
+#s6sesafa@uni-bonn.de   #
 #########################
 #Lale Samadfam          #
 #3274120                #
