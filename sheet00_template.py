@@ -6,7 +6,7 @@ from numpy.random import randint
 
 
 # Authors: Seyed Arash Safavi
-# Laleh Samadfam
+# Lale Samadfam
 
 def display_image(window_name, img):
     """
