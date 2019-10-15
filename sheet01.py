@@ -64,6 +64,7 @@ def hist_eq(img):
             img[i,j] = 255 / size * cumulitive_hist[img[i,j]]
     return img
 
+#compute maximum pixelwise error of two images
 def max_err(src, res):
     err = 0
     for i in range(src.shape[0]):
@@ -71,6 +72,16 @@ def max_err(src, res):
             if src[i,j] - res[i,j] > err:
                 err = src[i,j] - res[i,j]
     return err
+
+def saltpepper(img, p):
+    for i in range(img.shape[0]):
+        for j in range(img.shape[1]):
+            img[i] = np.random.choice([img[i,j], 0, 256], 1, [1-p, p/2, p/2])[0]
+    return img
+
+def update_mean_gray_err():
+    #TODO
+    return 0
 #    =========================================================================
 img = cv.imread(img_path, cv.IMREAD_GRAYSCALE)  # read image
 #    =========================================================================
@@ -79,39 +90,38 @@ img = cv.imread(img_path, cv.IMREAD_GRAYSCALE)  # read image
 #    ==================== Task 1 =================================
 #    =========================================================================    
 
- print('Task 1:');
- # a
- integral_img = my_integral(img)
- cv.imshow('integral image', integral_img)
+print('Task 1:');
+# a
+integral_img = my_integral(img)
+cv.imshow('integral image', integral_img)
 
- # b
- # using sum of image values
- mean_value_i = mean_integral_i(img)
+# b
+# using sum of image values
+mean_value_i = mean_integral_i(img)
 
- # using cv.integral
- mean_value_ii = mean_integral_ii(img)
+# using cv.integral
+mean_value_ii = mean_integral_ii(img)
 
- # using integral image of our own
- mean_value_iii = mean_integral_iii(img)
+# using integral image of our own
+mean_value_iii = mean_integral_iii(img)
 
- # c
- for i in range(10):
-     patch = get_patch(img,10, 10)
+# c
+for i in range(10):
+    patch = get_patch(img,10, 10)
+    t_start = time.process_time()
+    mean_integral_i(patch)
+    t_end = time.process_time()
+    print('patch', i, 'mean integral i process time = ' , (t_end - t_start))
 
-     t_start = time.process_time()
-     mean_integral_i(patch)
-     t_end = time.process_time()
-     print('patch', i, 'mean integral i process time = ' , (t_end - t_start))
+    t_start = time.process_time()
+    mean_integral_ii(patch)
+    t_end = time.process_time()
+    print('patch', i, 'mean integral ii process time = ' , (t_end - t_start))
 
-     t_start = time.process_time()
-     mean_integral_ii(patch)
-     t_end = time.process_time()
-     print('patch', i, 'mean integral ii process time = ' , (t_end - t_start))
-
-     t_start = time.process_time()
-     mean_integral_iii(patch)
-     t_end = time.process_time()
-     print('patch', i, 'mean integral iii process time = ' , (t_end - t_start))
+    t_start = time.process_time()
+    mean_integral_iii(patch)
+    t_end = time.process_time()
+    print('patch', i, 'mean integral iii process time = ' , (t_end - t_start))
 
 #    =========================================================================
 #    ==================== Task 2 =================================
@@ -127,11 +137,28 @@ cv.imshow('my histogram qualized', my_img_hist_eq)
 
 print(max_err(cv_img_hist_eq, my_img_hist_eq))
 
-
 #    =========================================================================
 #    ==================== Task 4 =================================
 #    =========================================================================    
 print('Task 4:');
+
+noisy_img = saltpepper(img, 0.3)
+cv.imshow('noisy image', noisy_img)
+#a
+for k in [1, 3, 5, 7, 9]:
+    gaussian_errors = np.zeros(5)
+    gaussian_filtered = cv.GaussianBlur(noisy_img, k, 3*k/2, None, None)
+    gaussian_errors[k]  = update_mean_gray_err()
+
+    median_errors = np.zeros(5)
+    median_filtered = cv.medianBlur(img, k)
+    median_errors[k] =  update_mean_gray_err()
+
+    bilateral_errors = np.zeros(5)
+    #bilateral_filtered = cv.bilateralFilter(img, )
+
+#b
+#c
 
 #    =========================================================================
 #    ==================== Task 6 =================================
