@@ -84,8 +84,8 @@ def saltpepper(img, p):
 
 
 def update_mean_gray_err(src, res):
-    # TODO
-    return 0
+    return mean_integral_ii(src) - mean_integral_ii(res)
+
 
 
 def gaussian_kernel(sigma):
