@@ -177,9 +177,22 @@ print('max error for a, c = ' , max_err(cv_blurred, my_gaus_blurred))
 print('max error for b, c = ', max_err(cv_gaus_blurred, my_gaus_blurred))
 
 #    =========================================================================
-#    ==================== Task 6 =================================
+#    ==================== Task 5 =================================
 #    =========================================================================    
-print('Task 6:');
+print('Task 5:');
+
+cv.imshow('bonn.png', img)
+
+once_convolved = cv.GaussianBlur(img, 6 * 2, 2)
+two_step_convolved = cv.GaussianBlur(once_convolved, 6 * 2, 2)
+cv.imshow('twice convolved with kernel size 2',two_step_convolved)
+
+one_step_convolve = cv.GaussianBlur(img, 6 * 2 * np.sqrt(2), 2 * np.sqrt(2))
+cv.imshow('once convolved with kernel size 2*sqrt(2)')
+
+print('max error for convolving twice with sigma = 2 and once with 2*sqrt(2) is ', max_err(two_step_convolved,
+                                                                                           one_step_convolve))
+
 
 #    =========================================================================
 #    ==================== Task 7 =================================
