@@ -5,7 +5,6 @@ import random
 import time
 import sys
 
-
 if __name__ == '__main__':
     img_path = sys.argv[1]
 
@@ -84,17 +83,19 @@ def saltpepper(img, p):
     return img
 
 
-def update_mean_gray_err():
+def update_mean_gray_err(src, res):
     # TODO
     return 0
+
 
 def gaussian_kernel(sigma):
     kernel_size = 6 * sigma
     kernel = np.zeros([kernel_size, kernel_size])
     for i in range(kernel_size):
         for j in range(kernel_size):
-            kernel[i,j] = (1 / (2 * np.pi * sigma ** 2)) * np.e ** (-(i ** 2 + j ** 2)/(2 * sigma **2))
+            kernel[i, j] = (1 / (2 * np.pi * sigma ** 2)) * np.e ** (-(i ** 2 + j ** 2) / (2 * sigma ** 2))
     return kernel
+
 
 #    =========================================================================
 img = cv.imread(img_path, cv.IMREAD_GRAYSCALE)  # read image
@@ -158,22 +159,22 @@ print('Task 4:');
 cv.imshow('bonn.png', img)
 sigma = 2 * np.sqrt(2)
 # a
-cv_blurred = cv.GaussianBlur(img, 2 * 3 * sigma, 2 * np.sqrt(2))
+cv_blurred = cv.GaussianBlur(img, [0, 0], 2 * np.sqrt(2))
 cv.imshow('blurred with cv gaussian blur function', cv_blurred)
 
-#b
-cv_kernel = cv.getGaussianKernel(6 * sigma, sigma)
-cv_gaus_blurred = cv.filter2D(img, None,cv_kernel)
+# b
+cv_kernel = cv.getGaussianKernel([0, 0], sigma)
+cv_gaus_blurred = cv.filter2D(img, None, cv_kernel)
 cv.imshow('blurred with cv gaussian kernel', cv_gaus_blurred)
 
-#c
+# c
 my_kernel = gaussian_kernel(sigma)
 my_gaus_blurred = cv.filter2D(img, None, my_kernel)
 cv.imshow('blurred with self implemented gaussian kernel', my_gaus_blurred)
 
 # calculation of maximum pixel wise error of three pairs
 print('max error for a, b = ', max_err(cv_blurred, cv_gaus_blurred))
-print('max error for a, c = ' , max_err(cv_blurred, my_gaus_blurred))
+print('max error for a, c = ', max_err(cv_blurred, my_gaus_blurred))
 print('max error for b, c = ', max_err(cv_gaus_blurred, my_gaus_blurred))
 
 #    =========================================================================
@@ -183,16 +184,15 @@ print('Task 5:');
 
 cv.imshow('bonn.png', img)
 
-once_convolved = cv.GaussianBlur(img, 6 * 2, 2)
-two_step_convolved = cv.GaussianBlur(once_convolved, 6 * 2, 2)
-cv.imshow('twice convolved with kernel size 2',two_step_convolved)
+once_convolved = cv.GaussianBlur(img, [0, 0], 2)
+two_step_convolved = cv.GaussianBlur(once_convolved, [0, 0], 2)
+cv.imshow('twice convolved with kernel size 2', two_step_convolved)
 
-one_step_convolve = cv.GaussianBlur(img, 6 * 2 * np.sqrt(2), 2 * np.sqrt(2))
+one_step_convolve = cv.GaussianBlur(img, [0, 0], 2 * np.sqrt(2))
 cv.imshow('once convolved with kernel size 2*sqrt(2)')
 
 print('max error for convolving twice with sigma = 2 and once with 2*sqrt(2) is ', max_err(two_step_convolved,
                                                                                            one_step_convolve))
-
 
 #    =========================================================================
 #    ==================== Task 7 =================================
@@ -201,21 +201,45 @@ print('Task 7:');
 
 noisy_img = saltpepper(img, 0.3)
 cv.imshow('noisy image', noisy_img)
-# a
+
+#a
+gaussian_errors = np.zeros(5)
+
+#b
+median_errors = np.zeros(5)
+
+#c
+bilateral_errors = np.zeros(5)
+
 for k in [1, 3, 5, 7, 9]:
-    gaussian_errors = np.zeros(5)
-    gaussian_filtered = cv.GaussianBlur(noisy_img, k, 2 * 3 * k, None, None)
-    gaussian_errors[k] = update_mean_gray_err()
+    # a
+    gaussian_filtered = cv.GaussianBlur(noisy_img, k, k/6, None, None)
+    gaussian_errors[k] = update_mean_gray_err(img, gaussian_filtered)
 
-    median_errors = np.zeros(5)
+    # b
     median_filtered = cv.medianBlur(img, k)
-    median_errors[k] = update_mean_gray_err()
+    median_errors[k] = update_mean_gray_err(img, median_filtered)
 
-    bilateral_errors = np.zeros(5)
-    # bilateral_filtered = cv.bilateralFilter(img, )
+    # c
+    bilateral_filtered = cv.bilateralFilter(img, k, k/6) #TODO check bilateral filter sigma
+    bilateral_errors[k] = update_mean_gray_err(img, bilateral_filtered)
 
-# b
-# c
+
+#a
+g_size = np.min(gaussian_errors)
+gaussian_filtered = cv.GaussianBlur(noisy_img, g_size, g_size/6, None, None)
+cv.imshow('problem 7, gaussian blurred', gaussian_filtered)
+
+#b
+m_size = np.min(median_errors)
+median_filtered = cv.medianBlur(img, m_size)
+cv.imshow('problem 7, median filtered', median_filtered)
+
+#c
+b_size = np.min(bilateral_errors)
+bilateral_filtered = cv.bilateralFilter(img, k, k/6) #TODO
+cv.imshow('problem 7, bilateral filtered', bilateral_filtered)
+
 
 #    =========================================================================
 #    ==================== Task 8 =================================
