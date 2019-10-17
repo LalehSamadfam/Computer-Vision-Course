@@ -87,7 +87,6 @@ def update_mean_gray_err(src, res):
     return mean_integral_ii(src) - mean_integral_ii(res)
 
 
-
 def gaussian_kernel(sigma):
     kernel_size = 6 * sigma
     kernel = np.zeros([kernel_size, kernel_size])
@@ -245,3 +244,6 @@ cv.imshow('problem 7, bilateral filtered', bilateral_filtered)
 #    ==================== Task 8 =================================
 #    =========================================================================    
 print('Task 8:');
+
+kernel_a = [[0.0113, 0.0838, 0.0113], [0.0838, 0.6193, 0.0838], [0.0113, 0.0838, 0.0113]]
+kernel_b = [[-0.8984, 0.1472, 1.1410], [-1.9075, 0.1566, 2.1359], [-0.8659, 0.0573, 1.0337]]
