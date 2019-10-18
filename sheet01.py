@@ -77,10 +77,16 @@ def max_err(src, res):
 
 
 def salt_pepper(img, p):
+    plain = np.ones(100 - p)
+    peper = np.zeros(p // 2 - 1)
+    salt = 256 * np.ones(p // 2 + 1)
+    dice = np.append(plain, peper)
+    dice = np.append(dice, salt)
     for i in range(img.shape[0]):
         for j in range(img.shape[1]):
-            random_value = np.random.choice([img[i, j], 0, 256], 1, [1 - p, p / 2, p / 2])
-            img[i,j] = random_value[0]
+            random_value = np.random.choice(dice)
+            if(random_value != 1):
+               img[i,j] = random_value
     return img
 
 
@@ -96,6 +102,16 @@ def gaussian_kernel(sigma):
             kernel[i, j] = (1 / (2 * np.pi * sigma ** 2)) * np.e ** (-(i ** 2 + j ** 2) / (2 * sigma ** 2))
     return kernel
 
+def cast_to_image(integral_img):
+    casted = np.zeros((integral_img.shape[0], integral_img.shape[1]))
+    for i in range(1, integral_img.shape[0]):
+        for j in range(1, integral_img.shape[1]):
+            if integral_img[i, j] > 256:
+                casted[i, j] = 256
+            else:
+                casted[i,j] = integral_img[i,j]
+    return casted
+
 
 #    =========================================================================
 img = cv.imread(img_path, cv.IMREAD_GRAYSCALE)  # read image
@@ -107,8 +123,9 @@ img = cv.imread(img_path, cv.IMREAD_GRAYSCALE)  # read image
 print('Task 1:');
 # a
 integral_img = my_integral(img)
-#cv.imshow('integral image', integral_img)
-#input('press any key to continue')
+casted = cast_to_image(integral_img)
+cv.imshow('the values above 256 are all whitend', casted)
+input('press any key to continue')
 
 # b
 # using sum of image values
@@ -206,13 +223,14 @@ cv.imshow('once convolved with kernel size 2*sqrt(2)', one_step_convolve)
 input('press any key to continue')
 
 print('max error for convolving twice with sigma = 2 and once with 2*sqrt(2) is ', max_err(two_step_convolved,
-                                                                                           one_step_convolve))
+                                                                                          one_step_convolve))
+
 #    =========================================================================
 #    ==================== Task 7 =================================
 #    =========================================================================    
 print('Task 7:');
 
-noisy_img = salt_pepper(img, 0.3)
+noisy_img = salt_pepper(img, 30)
 cv.imshow('noisy image', noisy_img)
 input('press any key to continue')
 
@@ -241,7 +259,7 @@ for k in [1, 3, 5, 7, 9]:
 
 #a
 g_size = 2 * np.argmin(gaussian_errors) + 1
-print('gsize', g_size)
+
 gaussian_filtered = cv.GaussianBlur(noisy_img, (g_size,g_size), g_size/6)
 cv.imshow('problem 7, gaussian blurred', gaussian_filtered)
 input('press any key to continue')
@@ -257,7 +275,7 @@ b_size = 2 * np.argmin(bilateral_errors) + 1
 bilateral_filtered = cv.bilateralFilter(img, k, k/6, k/6) #TODO
 cv.imshow('problem 7, bilateral filtered', bilateral_filtered)
 input('press any key to continue')
-"""""
+
 #    =========================================================================
 #    ==================== Task 8 =================================
 #    =========================================================================    
@@ -275,4 +293,3 @@ b_filtered = cv.filter2D(img, -1,  kernel_b)
 
 W_a, U_a, V_a = cv.SVDecomp(kernel_a)
 W_b, U_b, V_b = cv.SVDecomp(kernel_b)
-"""
