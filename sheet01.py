@@ -101,8 +101,7 @@ img = cv.imread(img_path, cv.IMREAD_GRAYSCALE)  # read image
 
 #    =========================================================================    
 #    ==================== Task 1 =================================
-#    =========================================================================    
-
+#    =========================================================================
 print('Task 1:');
 # a
 integral_img = my_integral(img)
@@ -204,7 +203,6 @@ input('press any key to continue')
 
 print('max error for convolving twice with sigma = 2 and once with 2*sqrt(2) is ', max_err(two_step_convolved,
                                                                                            one_step_convolve))
-
 #    =========================================================================
 #    ==================== Task 7 =================================
 #    =========================================================================    
@@ -238,24 +236,23 @@ for k in [1, 3, 5, 7, 9]:
 
 
 #a
-g_size = np.min(gaussian_errors)
-
+g_size = 2 * np.argmin(gaussian_errors) + 1
+print('gsize', g_size)
 gaussian_filtered = cv.GaussianBlur(noisy_img, (g_size,g_size), g_size/6)
 cv.imshow('problem 7, gaussian blurred', gaussian_filtered)
 input('press any key to continue')
 
 #b
-m_size = np.min(median_errors)
+m_size = 2 * np.argmin(median_errors) + 1
 median_filtered = cv.medianBlur(img, m_size)
 cv.imshow('problem 7, median filtered', median_filtered)
 input('press any key to continue')
 
 #c
-b_size = np.min(bilateral_errors)
+b_size = 2 * np.argmin(bilateral_errors) + 1
 bilateral_filtered = cv.bilateralFilter(img, k, k/6, k/6) #TODO
 cv.imshow('problem 7, bilateral filtered', bilateral_filtered)
 input('press any key to continue')
-
 
 #    =========================================================================
 #    ==================== Task 8 =================================
