@@ -74,10 +74,11 @@ def max_err(src, res):
     return err
 
 
-def saltpepper(img, p):
+def salt_pepper(img, p):
     for i in range(img.shape[0]):
         for j in range(img.shape[1]):
-            img[i] = np.random.choice([img[i, j], 0, 256], 1, [1 - p, p / 2, p / 2])[0]
+            random_value = np.random.choice([img[i, j], 0, 256], 1, [1 - p, p / 2, p / 2])
+            img[i,j] = random_value[0]
     return img
 
 
@@ -209,7 +210,7 @@ print('max error for convolving twice with sigma = 2 and once with 2*sqrt(2) is 
 #    =========================================================================    
 print('Task 7:');
 
-noisy_img = saltpepper(img, 0.3)
+noisy_img = salt_pepper(img, 0.3)
 cv.imshow('noisy image', noisy_img)
 input('press any key to continue')
 
@@ -224,21 +225,22 @@ bilateral_errors = np.zeros(5)
 
 for k in [1, 3, 5, 7, 9]:
     # a
-    gaussian_filtered = cv.GaussianBlur(noisy_img, k, k/6)
-    gaussian_errors[k] = update_mean_gray_err(img, gaussian_filtered)
+    gaussian_filtered = cv.GaussianBlur(noisy_img, (k, k), k/6)
+    gaussian_errors[k // 2] = update_mean_gray_err(img, gaussian_filtered)
 
     # b
     median_filtered = cv.medianBlur(img, k)
-    median_errors[k] = update_mean_gray_err(img, median_filtered)
+    median_errors[k // 2] = update_mean_gray_err(img, median_filtered)
 
     # c
-    bilateral_filtered = cv.bilateralFilter(img, k, k/6) #TODO check bilateral filter sigma
-    bilateral_errors[k] = update_mean_gray_err(img, bilateral_filtered)
+    bilateral_filtered = cv.bilateralFilter(img, k, k/6, k/6) #TODO check bilateral filter sigma
+    bilateral_errors[k // 2] = update_mean_gray_err(img, bilateral_filtered)
 
 
 #a
 g_size = np.min(gaussian_errors)
-gaussian_filtered = cv.GaussianBlur(noisy_img, g_size, g_size/6, None, None)
+
+gaussian_filtered = cv.GaussianBlur(noisy_img, (g_size,g_size), g_size/6)
 cv.imshow('problem 7, gaussian blurred', gaussian_filtered)
 input('press any key to continue')
 
@@ -250,7 +252,7 @@ input('press any key to continue')
 
 #c
 b_size = np.min(bilateral_errors)
-bilateral_filtered = cv.bilateralFilter(img, k, k/6) #TODO
+bilateral_filtered = cv.bilateralFilter(img, k, k/6, k/6) #TODO
 cv.imshow('problem 7, bilateral filtered', bilateral_filtered)
 input('press any key to continue')
 
