@@ -12,10 +12,12 @@ if __name__ == '__main__':
 def my_integral(img):
     temp_img = cv.copyMakeBorder(img, 1, 0, 1, 0, cv.BORDER_CONSTANT, None,
                                  0)  # add a border of zeros to top and left of image
-    for i in range(1, temp_img.shape[0]):  # rows
-        for j in range(1, temp_img.shape[1]):  # columns
-            temp_img[i, j] = temp_img[i - 1, j] + temp_img[i, j - 1] + temp_img[i, j] - temp_img[i - 1, j - 1]
-    integral_img = temp_img[1:, 1:]  # removing the border
+    integral_img = np.zeros((temp_img.shape[0], temp_img.shape[1]), dtype=int)
+    for i in range(1, integral_img.shape[0]):  # rows
+        for j in range(1, integral_img.shape[1]):  # columns
+            integral_img[i, j] = int(integral_img[i - 1, j]) + int(integral_img[i, j - 1]) + int(temp_img[i, j]) -\
+                                 int(integral_img[i - 1, j - 1])
+    integral_img = integral_img[1:, 1:]  # removing the border
     return integral_img
 
 
@@ -69,8 +71,8 @@ def max_err(src, res):
     err = 0
     for i in range(src.shape[0]):
         for j in range(src.shape[1]):
-            if src[i, j] - res[i, j] > err:
-                err = src[i, j] - res[i, j]
+            if int(src[i, j]) - int(res[i, j]) > err:
+                err = int(src[i, j]) - int(res[i, j])
     return err
 
 
@@ -105,20 +107,21 @@ img = cv.imread(img_path, cv.IMREAD_GRAYSCALE)  # read image
 print('Task 1:');
 # a
 integral_img = my_integral(img)
-cv.imshow('integral image', integral_img)
-input('press any key to continue')
+#cv.imshow('integral image', integral_img)
+#input('press any key to continue')
 
 # b
 # using sum of image values
 mean_value_i = mean_integral_i(img)
+print('mean value i = ', mean_value_i)
 
 # using cv.integral
 mean_value_ii = mean_integral_ii(img)
+print('mean value ii=', mean_value_ii)
 
 # using integral image of our own
 mean_value_iii = mean_integral_iii(img)
-
-print(mean_integral_i(img), mean_integral_ii(img), mean_integral_iii(img))
+print('mean value iii = ', mean_value_iii)
 
 # c
 for i in range(10):
@@ -126,17 +129,17 @@ for i in range(10):
     t_start = time.process_time()
     mean_integral_i(patch)
     t_end = time.process_time()
- #   print('patch', i, 'mean integral i process time = ', (t_end - t_start))
+    print('patch', i, 'mean integral i process time = ', (t_end - t_start))
 
     t_start = time.process_time()
     mean_integral_ii(patch)
     t_end = time.process_time()
-#    print('patch', i, 'mean integral ii process time = ', (t_end - t_start))
+    print('patch', i, 'mean integral ii process time = ', (t_end - t_start))
 
     t_start = time.process_time()
     mean_integral_iii(patch)
     t_end = time.process_time()
-#    print('patch', i, 'mean integral iii process time = ', (t_end - t_start))
+    print('patch', i, 'mean integral iii process time = ', (t_end - t_start))
 
 
 #    =========================================================================
@@ -152,7 +155,7 @@ input('press any key to continue')
 my_img_hist_eq = hist_eq(img)
 cv.imshow('my histogram qualized', my_img_hist_eq)
 input('press any key to continue')
-print(max_err(cv_img_hist_eq, my_img_hist_eq))
+print('maximum error for opencv histogram equalization and ours is =', max_err(cv_img_hist_eq, my_img_hist_eq))
 
 #    =========================================================================
 #    ==================== Task 4 =================================
@@ -163,12 +166,13 @@ cv.imshow('bonn.png', img)
 input('press any key to continue')
 
 sigma = 2 * np.sqrt(2)
+kernel_size = int(6*sigma) - 1
 # a
-cv_blurred = cv.GaussianBlur(img, (0, 0), 2 * np.sqrt(2))
+cv_blurred = cv.GaussianBlur(img, (kernel_size, kernel_size), 2 * np.sqrt(2))
 cv.imshow('blurred with cv gaussian blur function', cv_blurred)
 input('press any key to continue')
 # b
-cv_kernel = cv.getGaussianKernel(int(6*sigma), sigma)
+cv_kernel = cv.getGaussianKernel(kernel_size, sigma)
 cv_gaus_blurred = cv.filter2D(img, -1, cv_kernel)
 cv.imshow('blurred with cv gaussian kernel', cv_gaus_blurred)
 input('press any key to continue')
@@ -253,7 +257,7 @@ b_size = 2 * np.argmin(bilateral_errors) + 1
 bilateral_filtered = cv.bilateralFilter(img, k, k/6, k/6) #TODO
 cv.imshow('problem 7, bilateral filtered', bilateral_filtered)
 input('press any key to continue')
-
+"""""
 #    =========================================================================
 #    ==================== Task 8 =================================
 #    =========================================================================    
@@ -271,3 +275,4 @@ b_filtered = cv.filter2D(img, -1,  kernel_b)
 
 W_a, U_a, V_a = cv.SVDecomp(kernel_a)
 W_b, U_b, V_b = cv.SVDecomp(kernel_b)
+"""
