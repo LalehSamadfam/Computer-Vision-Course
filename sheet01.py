@@ -77,6 +77,7 @@ def max_err(src, res):
 
 
 def salt_pepper(img, p):
+    img_copy = img.copy()
     plain = np.ones(100 - p)
     peper = np.zeros(p // 2 - 1)
     salt = 256 * np.ones(p // 2 + 1)
@@ -86,8 +87,8 @@ def salt_pepper(img, p):
         for j in range(img.shape[1]):
             random_value = np.random.choice(dice)
             if(random_value != 1):
-               img[i,j] = random_value
-    return img
+               img_copy[i,j] = random_value
+    return img_copy
 
 
 def update_mean_gray_err(src, res):
@@ -95,7 +96,7 @@ def update_mean_gray_err(src, res):
 
 
 def gaussian_kernel(sigma):
-    kernel_size = int(6 * sigma)
+    kernel_size = int(6*sigma) - 1
     kernel = np.zeros([kernel_size, kernel_size])
     for i in range(kernel_size):
         for j in range(kernel_size):
@@ -120,6 +121,7 @@ img = cv.imread(img_path, cv.IMREAD_GRAYSCALE)  # read image
 #    =========================================================================    
 #    ==================== Task 1 =================================
 #    =========================================================================
+"""""
 print('Task 1:');
 # a
 integral_img = my_integral(img)
@@ -187,19 +189,19 @@ kernel_size = int(6*sigma) - 1
 
 # a
 cv_blurred = cv.GaussianBlur(img, (kernel_size, kernel_size), 2 * np.sqrt(2))
-cv.imshow('blurred with cv gaussian blur function', cv_blurred)
+cv.imshow('a: blurred with cv gaussian blur function', cv_blurred)
 input('press any key to continue')
 
 # b
 cv_kernel = cv.getGaussianKernel(kernel_size, sigma)
 cv_gaus_blurred = cv.filter2D(img, -1, cv_kernel)
-cv.imshow('blurred with cv gaussian kernel', cv_gaus_blurred)
+cv.imshow('b: blurred with cv gaussian kernel', cv_gaus_blurred)
 input('press any key to continue')
 
 # c
 my_kernel = gaussian_kernel(sigma)
 my_gaus_blurred = cv.filter2D(img, -1, my_kernel)
-cv.imshow('blurred with self implemented gaussian kernel', my_gaus_blurred)
+cv.imshow('c: blurred with self implemented gaussian kernel', my_gaus_blurred)
 input('press any key to continue')
 
 # calculation of maximum pixel wise error of three pairs
@@ -252,10 +254,10 @@ for k in [1, 3, 5, 7, 9]:
 
     # b
     median_filtered = cv.medianBlur(img, k)
-    median_errors[k // 2] = update_mean_gray_err(img, median_filtered)
+    median_errors[k // 2] = update_mean_gray_err(noisy_img, median_filtered)
 
     # c
-    bilateral_filtered = cv.bilateralFilter(img, k, k/6, k/6) #TODO check bilateral filter sigma
+    bilateral_filtered = cv.bilateralFilter(noisy_img, k, k/6, k/6) #TODO check bilateral filter sigma
     bilateral_errors[k // 2] = update_mean_gray_err(img, bilateral_filtered)
 
 
@@ -268,23 +270,23 @@ input('press any key to continue')
 
 #b
 m_size = 2 * np.argmin(median_errors) + 1
-median_filtered = cv.medianBlur(img, m_size)
+median_filtered = cv.medianBlur(noisy_img, m_size)
 cv.imshow('problem 7, median filtered', median_filtered)
 input('press any key to continue')
 
 #c
 b_size = 2 * np.argmin(bilateral_errors) + 1
-bilateral_filtered = cv.bilateralFilter(img, k, k/6, k/6) #TODO
+bilateral_filtered = cv.bilateralFilter(noisy_img, k, k/6, k/6) #TODO
 cv.imshow('problem 7, bilateral filtered', bilateral_filtered)
 input('press any key to continue')
 #    =========================================================================
 #    ==================== Task 8 =================================
 #    =========================================================================    
+"""""
 print('Task 8:');
 
 kernel_a = cv.UMat(np.array([[0.0113, 0.0838, 0.0113],[0.0838, 0.6193, 0.0838], [0.0113, 0.0838, 0.0113]]))
 kernel_b = cv.UMat(np.array([[-0.8984, 0.1472, 1.1410],[-1.9075, 0.1566, 2.1359], [-0.8659, 0.0573, 1.0337]]))
-
 
 #a
 a_filtered = cv.filter2D(img, -1, kernel_a)
@@ -298,8 +300,10 @@ input('press any key to continue')
 
 #b
 W_a, U_a, Vt_a = cv.SVDecomp(kernel_a)
-horiz_kern_a = np.dot(U_a.get()[0], np.sqrt(W_a.get()[0][0]))
-vert_kern_a = np.dot(Vt_a.get()[0], np.sqrt(W_a.get()[0][0]))
+rank_a = np.linalg.matrix_rank(kernel_a)
+
+horiz_kern_a = np.array(U_a.get()[0]) * np.sqrt(W_a.get()[0][0]) + np.array(U_a.get()[1]) * np.sqrt(W_a.get()[1][0])
+vert_kern_a = np.array(Vt_a.get()[0]) * np.sqrt(Vt_a.get()[0][0]) + np.array(Vt_a.get()[1]) * np.sqrt(W_a.get()[1][0])
 h_filtered = cv.filter2D(img, -1, horiz_kern_a)
 decomp_filtered_a = cv.filter2D(h_filtered, -1, vert_kern_a)
 cv.imshow('filterd with kernel a compositions', decomp_filtered_a)
@@ -311,7 +315,7 @@ horiz_kern_b = np.dot(U_b.get()[0], np.sqrt(W_b.get()[0][0]))
 vert_kern_b = np.dot(Vt_b.get()[0], np.sqrt(W_b.get()[0][0]))
 h_filtered = cv.filter2D(img, -1, horiz_kern_a)
 decomp_filtered_b = cv.filter2D(h_filtered, -1, vert_kern_b)
-cv.imshow('filterd with kernel b compositions', decomp_filtered_b)
+cv.imshow('filtered with kernel b compositions', decomp_filtered_b)
 input('press any key to continue')
 
 #c
