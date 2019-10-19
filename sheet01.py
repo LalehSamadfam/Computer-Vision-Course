@@ -184,10 +184,12 @@ input('press any key to continue')
 
 sigma = 2 * np.sqrt(2)
 kernel_size = int(6*sigma) - 1
+
 # a
 cv_blurred = cv.GaussianBlur(img, (kernel_size, kernel_size), 2 * np.sqrt(2))
 cv.imshow('blurred with cv gaussian blur function', cv_blurred)
 input('press any key to continue')
+
 # b
 cv_kernel = cv.getGaussianKernel(kernel_size, sigma)
 cv_gaus_blurred = cv.filter2D(img, -1, cv_kernel)
@@ -275,21 +277,44 @@ b_size = 2 * np.argmin(bilateral_errors) + 1
 bilateral_filtered = cv.bilateralFilter(img, k, k/6, k/6) #TODO
 cv.imshow('problem 7, bilateral filtered', bilateral_filtered)
 input('press any key to continue')
-
 #    =========================================================================
 #    ==================== Task 8 =================================
 #    =========================================================================    
 print('Task 8:');
 
-kernel_a = cv.UMat(np.array( ([0.0113, 0.0838, 0.0113],[0.0838, 0.6193, 0.0838], [0.0113, 0.0838, 0.0113]), dtype=np.uint8))
-kernel_b = cv.UMat(np.array( ([-0.8984, 0.1472, 1.1410],[-1.9075, 0.1566, 2.1359], [-0.8659, 0.0573, 1.0337]), dtype=np.uint8))
+kernel_a = cv.UMat(np.array([[0.0113, 0.0838, 0.0113],[0.0838, 0.6193, 0.0838], [0.0113, 0.0838, 0.0113]]))
+kernel_b = cv.UMat(np.array([[-0.8984, 0.1472, 1.1410],[-1.9075, 0.1566, 2.1359], [-0.8659, 0.0573, 1.0337]]))
 
 
 #a
-a_filtered = cv.filter2D(img, -1,  kernel_a)
-b_filtered = cv.filter2D(img, -1,  kernel_b)
+a_filtered = cv.filter2D(img, -1, kernel_a)
+cv.imshow('filtered with kernel a', a_filtered)
+input('press any key to continue')
+
+b_filtered = cv.filter2D(img, -1, kernel_b)
+cv.imshow('filtered with kernel b', b_filtered)
+input('press any key to continue')
+
 
 #b
+W_a, U_a, Vt_a = cv.SVDecomp(kernel_a)
+horiz_kern_a = np.dot(U_a.get()[0], np.sqrt(W_a.get()[0][0]))
+vert_kern_a = np.dot(Vt_a.get()[0], np.sqrt(W_a.get()[0][0]))
+h_filtered = cv.filter2D(img, -1, horiz_kern_a)
+decomp_filtered_a = cv.filter2D(h_filtered, -1, vert_kern_a)
+cv.imshow('filterd with kernel a compositions', decomp_filtered_a)
+input('press any key to continue')
 
-W_a, U_a, V_a = cv.SVDecomp(kernel_a)
-W_b, U_b, V_b = cv.SVDecomp(kernel_b)
+
+W_b, U_b, Vt_b = cv.SVDecomp(kernel_b)
+horiz_kern_b = np.dot(U_b.get()[0], np.sqrt(W_b.get()[0][0]))
+vert_kern_b = np.dot(Vt_b.get()[0], np.sqrt(W_b.get()[0][0]))
+h_filtered = cv.filter2D(img, -1, horiz_kern_a)
+decomp_filtered_b = cv.filter2D(h_filtered, -1, vert_kern_b)
+cv.imshow('filterd with kernel b compositions', decomp_filtered_b)
+input('press any key to continue')
+
+#c
+
+print('max error between section a, b for kernel a = ', max_err(decomp_filtered_a, a_filtered.get()))
+print('max error between section a, b for kernel b = ', max_err(decomp_filtered_b, b_filtered.get()))
