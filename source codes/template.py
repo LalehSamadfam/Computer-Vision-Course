@@ -4,15 +4,16 @@ import time
 
 
 def get_convolution_using_fourier_transform(image, kernel):
-    image_fft = np.fft.fft2(image)
-    kernel_fft = np.fft.fft2(kernel, image_fft.shape)
+    image_copy = image.copy()
+    image_fft = np.fft.fft2(image, image.shape)
+    kernel_fft = np.fft.fft2(kernel, image.shape)
     conv_fft = image_fft * kernel_fft
-    fft_result = np.fft.ifft2(conv_fft)
-    return fft_result
+    image_copy = np.fft.ifft2(conv_fft, image.shape).real
+    return image_copy
 
 
 def task1():
-    image = cv2.imread("../data/einstein.jpeg", 0)
+    image = cv2.imread("data/einstein.jpeg", 0)
     kernel = cv2.getGaussianKernel(7, 1)  # calculate kernel
 
     conv_result = cv2.filter2D(image, -1, kernel)  # calculate convolution of image and kernel

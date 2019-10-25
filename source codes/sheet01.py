@@ -124,7 +124,6 @@ img = cv.imread(img_path, 0)  # read image
 #    =========================================================================
 
 print('Task 1:');
-
 # a
 integral_img = my_integral(img)
 casted = cast_to_image(integral_img)
