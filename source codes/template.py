@@ -4,19 +4,25 @@ import time
 
 
 def get_convolution_using_fourier_transform(image, kernel):
-    return None
+    image_fft = np.fft.fft2(image)
+    kernel_fft = np.fft.fft2(kernel, image_fft.shape)
+    conv_fft = image_fft * kernel_fft
+    fft_result = np.fft.ifft2(conv_fft)
+    return fft_result
 
 
 def task1():
     image = cv2.imread("../data/einstein.jpeg", 0)
-    cv2.imshow('image', image)
-    kernel = None  # calculate kernel
+    kernel = cv2.getGaussianKernel(7, 1)  # calculate kernel
 
-    conv_result = None  # calculate convolution of image and kernel
-    fft_result = get_convolution_using_fourier_transform(image, kernel)
+    conv_result = cv2.filter2D(image, -1, kernel)  # calculate convolution of image and kernel
+    fft_result = get_convolution_using_fourier_transform(image, kernel) #get_convolution_using_fourier_transform(image, kernel)
 
-    # compare results
+    cv2.imshow('conv', conv_result)
+    input('press any key to continue..')
 
+    cv2.imshow('fft', fft_result)
+    input('press any key to continue..')
 
 def sum_square_difference(image, template):
     return None
@@ -25,7 +31,7 @@ def sum_square_difference(image, template):
 def normalized_cross_correlation(image, template):
     return None
 
-
+"""""
 def task2():
     image = cv2.imread("../data/lena.png", 0)
     template = cv2.imread("../data/eye.png", 0)
@@ -101,10 +107,10 @@ def task5():
 
     # compare and print mean absolute difference
 
-
+"""
 if __name__ == "__main__":
     task1()
-    task2()
-    task3()
-    task4()
-    task5()
+   # task2()
+    #task3()
+    #task4()
+    #task5()
