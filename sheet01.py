@@ -80,7 +80,7 @@ def salt_pepper(img, p):
     img_copy = img.copy()
     plain = np.ones(100 - p)
     peper = np.zeros(p // 2 - 1)
-    salt = 256 * np.ones(p // 2 + 1)
+    salt = 255 * np.ones(p // 2 + 1)
     dice = np.append(plain, peper)
     dice = np.append(dice, salt)
     for i in range(img.shape[0]):
@@ -88,6 +88,7 @@ def salt_pepper(img, p):
             random_value = np.random.choice(dice)
             if(random_value != 1):
                img_copy[i,j] = random_value
+        print(img_copy[i,j])
     return img_copy
 
 
@@ -105,8 +106,8 @@ def gaussian_kernel(sigma):
 
 def cast_to_image(integral_img):
     casted = np.zeros((integral_img.shape[0], integral_img.shape[1]))
-    for i in range(1, integral_img.shape[0]):
-        for j in range(1, integral_img.shape[1]):
+    for i in range(0, integral_img.shape[0]):
+        for j in range(0, integral_img.shape[1]):
             if integral_img[i, j] > 256:
                 casted[i, j] = 256
             else:
@@ -121,6 +122,7 @@ img = cv.imread(img_path, cv.IMREAD_GRAYSCALE)  # read image
 #    =========================================================================    
 #    ==================== Task 1 =================================
 #    =========================================================================
+"""""
 print('Task 1:');
 # a
 integral_img = my_integral(img)
@@ -227,7 +229,7 @@ input('press any key to continue')
 
 print('max error for convolving twice with sigma = 2 and once with 2*sqrt(2) is ', max_err(two_step_convolved,
                                                                                           one_step_convolve))
-
+"""
 #    =========================================================================
 #    ==================== Task 7 =================================
 #    =========================================================================    
