@@ -2,28 +2,25 @@ import cv2
 import numpy as np
 import time
 
-
 def get_convolution_using_fourier_transform(image, kernel):
     image_copy = image.copy()
     image_fft = np.fft.fft2(image, image.shape)
+    #image_ifft = np.fft.ifft2(image_fft).real.astype(np.int8)
+
     kernel_fft = np.fft.fft2(kernel, image.shape)
     conv_fft = image_fft * kernel_fft
-    image_copy = np.fft.ifft2(conv_fft, image.shape).real
+    image_copy = np.fft.ifft2(conv_fft, image.shape).real.astype(np.int8)
     return image_copy
 
+image = cv2.imread("data/einstein.jpeg", 0)
+kernel = cv2.getGaussianKernel(7, 1)  # calculate kernel
+conv_result = cv2.filter2D(image, -1, kernel)  # calculate convolution of image and kernel
+fft_result = get_convolution_using_fourier_transform(image, kernel) #get_convolution_using_fourier_transform(image, kernel)
 
-def task1():
-    image = cv2.imread("data/einstein.jpeg", 0)
-    kernel = cv2.getGaussianKernel(7, 1)  # calculate kernel
-
-    conv_result = cv2.filter2D(image, -1, kernel)  # calculate convolution of image and kernel
-    fft_result = get_convolution_using_fourier_transform(image, kernel) #get_convolution_using_fourier_transform(image, kernel)
-
-    cv2.imshow('conv', conv_result)
-    input('press any key to continue..')
-
-    cv2.imshow('fft', fft_result)
-    input('press any key to continue..')
+cv2.imshow('conv', conv_result)
+input('press any key to continue..')
+cv2.imshow('fft', fft_result)
+input('press any key to continue..')
 
 def sum_square_difference(image, template):
     return None
