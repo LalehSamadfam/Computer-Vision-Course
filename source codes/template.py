@@ -15,12 +15,14 @@ def get_convolution_using_fourier_transform(image, kernel):
     kernel_fft = np.fft.fft2(kernel, image.shape)
     conv_fft = image_fft * kernel_fft
     image_copy = np.fft.ifft2(conv_fft, image.shape).real.astype(np.int8)
+    return image_copy
 
 def task1():
     image = cv2.imread("../data/einstein.jpeg", 0)
     kernel = cv2.getGaussianKernel(7, 1)  # calculate kernel
     conv_result = cv2.filter2D(image, -1, kernel)  # calculate convolution of image and kernel
     fft_result = get_convolution_using_fourier_transform(image, kernel)  # get_convolution_using_fourier_transform(image, kernel)
+
     cv2.imshow('conv', conv_result)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
@@ -32,7 +34,13 @@ def task1():
     print(np.mean(np.absolute(conv_result - fft_result)))
     # input('press any key to continue..')
 
-
+def sum_square_difference(image, template):
+    error_image = image.copy()
+    for i in range(image.shape[0]):
+        for j in range(image.shape[1]):
+            for k in range(template.shape[0]):
+                for l in range(template.shape[1]):
+                    error_image[i][j] = (template[k][l] - image[i + k][j + l]) ** 2
 
 def task2():
     image = cv2.imread("../data/lena.png", 0)
