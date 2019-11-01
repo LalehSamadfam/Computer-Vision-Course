@@ -1,7 +1,8 @@
 import numpy as np
 import cv2 as cv
 import random
-
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 ##############################################
 #     Task 1        ##########################
@@ -42,7 +43,6 @@ def task_1_a():
     img_copy = img.copy()
     edges = cv.Canny(img, 150, 300, None, 3)
     lines = cv.HoughLines(edges, 1, 2 * np.pi/180, 50)
-    print(lines)
     display_lines(lines, img_copy, 'Task 1 a')
     cv.destroyAllWindows()
 
@@ -66,18 +66,25 @@ def myHoughLines(img_edges, d_resolution, theta_step_sz, threshold):
     detected_lines = np.argwhere(accumulator > threshold)
     fixer = np.concatenate((theta_step_sz * np.pi/180 * np.ones((5,1)), np.ones((5,1))), axis = 1)
     detected_lines = np.multiply(fixer, detected_lines)
-    print(detected_lines)
     return detected_lines, accumulator
 
+def iter_count(C, max_iter):
+        X = C
+        for n in range(max_iter):
+            if abs(X) > 2.:
+                return n
+            X = X ** 2 + C
+        return max_iter
 
 def task_1_b():
     print("Task 1 (b) ...")
     img = cv.imread('images/shapes.png')
-    print(img.shape)
     img_copy = img.copy()
     img_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)  # convert the image into grayscale
     edges = cv.Canny(img_gray, 150, 300, None, 3)  # detect the edges
     lines, accumulator = myHoughLines(edges, 1, 2, 50)
+    plt.imshow(accumulator, cmap= cm.gray)
+    plt.show()
     my_display_lines(lines, img_copy, 'task 1b')
 
 ##############################################
