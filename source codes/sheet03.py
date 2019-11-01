@@ -25,6 +25,7 @@ def my_display_lines(lines, image, header):
     line_size = max(image.shape[0], image.shape[1])
     for l in lines:
         theta, rho = l
+        #theta = step * 2 * np.pi/180
         x0 = rho * np.cos(theta)  # x0 is a point that we know is located on the line.
         y0 = rho * np.sin(theta)
         x1 = int(x0 - np.sin(theta) * line_size)
@@ -59,10 +60,12 @@ def myHoughLines(img_edges, d_resolution, theta_step_sz, threshold):
     for cell in np.argwhere(img_edges > 200):
             x, y = cell
             for step in range(int(180/theta_step_sz)):
-                theta = step * theta_step_sz
-                d = int(x * np.cos(theta) + y * np.sin(theta))
+                theta = step * theta_step_sz * np.pi/180
+                d = int(x * np.sin(theta) + y * np.cos(theta) / d_resolution)
                 accumulator[step,  d] += 1
     detected_lines = np.argwhere(accumulator > threshold)
+    fixer = np.concatenate((theta_step_sz * np.pi/180 * np.ones((5,1)), np.ones((5,1))), axis = 1)
+    detected_lines = np.multiply(fixer, detected_lines)
     print(detected_lines)
     return detected_lines, accumulator
 
@@ -70,6 +73,7 @@ def myHoughLines(img_edges, d_resolution, theta_step_sz, threshold):
 def task_1_b():
     print("Task 1 (b) ...")
     img = cv.imread('images/shapes.png')
+    print(img.shape)
     img_copy = img.copy()
     img_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)  # convert the image into grayscale
     edges = cv.Canny(img_gray, 150, 300, None, 3)  # detect the edges
