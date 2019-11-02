@@ -228,15 +228,7 @@ def task_4_a():
                 characters[index[1]] in C2:
             weight_sum += weight
 
-    volume_1 = 0
-    volume_2 = 0
-    for index, char in enumerate(characters):
-        if char in C1:
-            volume_1 += np.sum(W[index])
-        else:
-            volume_2 += np.sum(W[index])
-
-    cost = (weight_sum) / volume_1 + (weight_sum) / volume_2
+    cost = (weight_sum) / len(C1) + (weight_sum) / len(C2)
     print("Cost: ", cost)
 
 
@@ -245,8 +237,8 @@ def task_4_a():
 ##############################################
 
 if __name__ == "__main__":
-    task_1_a()
-    task_1_b()
+    # task_1_a()
+    # task_1_b()
     # # task_2()
     # task_3_a()
     # task_3_b()
