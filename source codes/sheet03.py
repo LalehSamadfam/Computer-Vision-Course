@@ -47,7 +47,7 @@ def my_display_lines(lines, image, header):
 
 def task_1_a():
     print("Task 1 (a) ...")
-    img = cv.imread('images/shapes.png')
+    img = cv.imread('../images/shapes.png')
     img_copy = img.copy()
     edges = cv.Canny(img, 150, 300, None, 3)
     lines = cv.HoughLines(edges, 1, 2 * np.pi / 180, 50)
@@ -72,28 +72,19 @@ def myHoughLines(img_edges, d_resolution, theta_step_sz, threshold):
             d = int(x * np.sin(theta) + y * np.cos(theta) / d_resolution)
             accumulator[step, d] += 1
     detected_lines = np.argwhere(accumulator > threshold)
-    fixer = np.concatenate((theta_step_sz * np.pi / 180 * np.ones((5, 1)), np.ones((5, 1))), axis=1)
+    size = detected_lines.shape[0]
+    fixer = np.concatenate((theta_step_sz * np.pi / 180 * np.ones((size, 1)), np.ones((size, 1))), axis=1)
     detected_lines = np.multiply(fixer, detected_lines)
     return detected_lines, accumulator
 
-
-def iter_count(C, max_iter):
-    X = C
-    for n in range(max_iter):
-        if abs(X) > 2.:
-            return n
-        X = X ** 2 + C
-    return max_iter
-
-
 def task_1_b():
     print("Task 1 (b) ...")
-    img = cv.imread('images/shapes.png')
+    img = cv.imread('../images/shapes.png')
     img_copy = img.copy()
     img_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)  # convert the image into grayscale
     edges = cv.Canny(img_gray, 150, 300, None, 3)  # detect the edges
     lines, accumulator = myHoughLines(edges, 1, 2, 50)
-    plt.imshow(accumulator, cmap=cm.gray)
+    plt.imshow(accumulator, cmap = cm.gray)
     plt.show()
     my_display_lines(lines, img_copy, 'task 1b')
 
@@ -106,17 +97,13 @@ def task_1_b():
 def task_2():
     print("Task 2 ...")
     img = cv.imread('../images/line.png')
-    img_gray = None  # convert the image into grayscale
-    edges = None  # detect the edges
-    theta_res = None  # set the resolution of theta
-    d_res = None  # set the distance resolution
-    # _, accumulator = myHoughLines(edges, d_res, theta_res, 50)
-    '''
-    ...
-    your code ...
-    ...
-    '''
-
+    img_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)  # convert the image into grayscale
+    edges = cv.Canny(img_gray, 150, 300, None, 3)  # detect the edges
+    theta_res = 1  # set the resolution of theta
+    d_res = 1  # set the distance resolution
+    lines, accumulator = myHoughLines(edges, d_res, theta_res, 30)
+    my_display_lines(lines, img, 'task2')
+    # peaks = mean_shift(accumulator)
 
 ##############################################
 #     Task 3        ##########################
@@ -246,7 +233,7 @@ def task_4_a():
 if __name__ == "__main__":
     task_1_a()
     task_1_b()
-    # # task_2()
+    task_2()
     # task_3_a()
     # task_3_b()
     # task_3_c()
