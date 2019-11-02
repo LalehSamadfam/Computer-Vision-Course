@@ -207,8 +207,12 @@ def task_4_a():
     print(np.dot(D_sqrt, one))
     print(eigen_vectors[-1])
     ############
-    y2 = np.dot(D_sqrt.transpose(), eigen_vectors[-2])
+    y2 = np.dot(np.linalg.inv(D_sqrt), eigen_vectors[-2])
     print(y2)
+
+
+def task_4_b():
+    pass
 
 
 ##############################################
@@ -216,10 +220,11 @@ def task_4_a():
 ##############################################
 
 if __name__ == "__main__":
-    task_1_a()
-    task_1_b()
+    # task_1_a()
+    # task_1_b()
     # # task_2()
     # task_3_a()
     # task_3_b()
     # task_3_c()
     task_4_a()
+    task_4_b()
