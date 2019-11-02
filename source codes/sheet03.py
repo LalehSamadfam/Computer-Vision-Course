@@ -227,8 +227,15 @@ def task_4_a():
         if characters[index[0]] in C1 and \
                 characters[index[1]] in C2:
             weight_sum += weight
+    volume_1 = 0
+    volume_2 = 0
+    for index, char in enumerate(characters):
+        if char in C1:
+            volume_1 += np.sum(W[index])
+        else:
+            volume_2 += np.sum(W[index])
 
-    cost = (weight_sum) / len(C1) + (weight_sum) / len(C2)
+    cost = (weight_sum) / volume_1 + (weight_sum) / volume_2
     print("Cost: ", cost)
 
 
