@@ -4,6 +4,12 @@ import random
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
+
+# Authors:
+# Lale Samadfam
+# Seyed Arash Safavi
+
+
 ##############################################
 #     Task 1        ##########################
 ##############################################
@@ -22,11 +28,12 @@ def display_lines(lines, image, header):
     cv.imshow(header, image)
     cv.waitKey(0)
 
+
 def my_display_lines(lines, image, header):
     line_size = max(image.shape[0], image.shape[1])
     for l in lines:
         theta, rho = l
-        #theta = step * 2 * np.pi/180
+        # theta = step * 2 * np.pi/180
         x0 = rho * np.cos(theta)  # x0 is a point that we know is located on the line.
         y0 = rho * np.sin(theta)
         x1 = int(x0 - np.sin(theta) * line_size)
@@ -37,12 +44,13 @@ def my_display_lines(lines, image, header):
     cv.imshow(header, image)
     cv.waitKey(0)
 
+
 def task_1_a():
     print("Task 1 (a) ...")
     img = cv.imread('../images/shapes.png')
     img_copy = img.copy()
     edges = cv.Canny(img, 150, 300, None, 3)
-    lines = cv.HoughLines(edges, 1, 2 * np.pi/180, 50)
+    lines = cv.HoughLines(edges, 1, 2 * np.pi / 180, 50)
     display_lines(lines, img_copy, 'Task 1 a')
     cv.destroyAllWindows()
 
@@ -58,17 +66,17 @@ def myHoughLines(img_edges, d_resolution, theta_step_sz, threshold):
     """
     accumulator = np.zeros((int(180 / theta_step_sz), int(np.linalg.norm(img_edges.shape) / d_resolution)))
     for cell in np.argwhere(img_edges > 200):
-            x, y = cell
-            for step in range(int(180/theta_step_sz)):
-                theta = step * theta_step_sz * np.pi/180
-                d = int(x * np.sin(theta) + y * np.cos(theta) / d_resolution)
-                accumulator[step,  d] += 1
+        x, y = cell
+        for step in range(int(180 / theta_step_sz)):
+            theta = step * theta_step_sz * np.pi / 180
+            d = int(x * np.sin(theta) + y * np.cos(theta) / d_resolution)
+            accumulator[step, d] += 1
     detected_lines = np.argwhere(accumulator > threshold)
-
     size = detected_lines.shape[0]
     fixer = np.concatenate((theta_step_sz * np.pi/180 * np.ones((size, 1)), np.ones((size, 1))), axis = 1)
     detected_lines = np.multiply(fixer, detected_lines)
     return detected_lines, accumulator
+
 
 def task_1_b():
     print("Task 1 (b) ...")
@@ -77,9 +85,10 @@ def task_1_b():
     img_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)  # convert the image into grayscale
     edges = cv.Canny(img_gray, 150, 300, None, 3)  # detect the edges
     lines, accumulator = myHoughLines(edges, 1, 2, 50)
-    plt.imshow(accumulator, cmap= cm.gray)
+    plt.imshow(accumulator, cmap=cm.gray)
     plt.show()
     my_display_lines(lines, img_copy, 'task 1b')
+
 
 ##############################################
 #     Task 2        ##########################
@@ -117,6 +126,7 @@ def task_2():
     lines, accumulator = myHoughLines(edges, d_res, theta_res, 30)
     my_display_lines(lines, img, 'task2')
     #peaks = mean_shift(accumulator)
+
 
 
 ##############################################
@@ -190,13 +200,47 @@ def task_3_c():
 
 def task_4_a():
     print("Task 4 (a) ...")
-    D = None  # construct the D matrix
-    W = None  # construct the W matrix
-    '''
-    ...
-    your code ...
-    ...
-    '''
+    vertices = 8
+    W = np.array([[0, 1, .2, 1, 0, 0, 0, 0],
+                  [1, 0, .1, 0, 1, 0, 0, 0],
+                  [.2, .1, 0, 1, 0, 1, .3, 0],
+                  [1, 0, 1, 0, 0, 1, 0, 0],
+                  [0, 1, 0, 0, 0, 0, 1, 1],
+                  [0, 0, 1, 1, 0, 0, 1, 0],
+                  [0, 0, .3, 0, 1, 1, 0, 1],
+                  [0, 0, 0, 0, 1, 0, 1, 0]])  # construct the W matrix
+    D = np.zeros(shape=(vertices, vertices))  # construct the D matrix
+    for i in range(vertices):
+        D[i, i] = np.sum(W[i])
+
+    L = D - W
+    D_sqrt = np.sqrt(D)
+    D_sqrt_inv = np.linalg.inv(D_sqrt)
+    _, eigen_values, eigen_vectors = cv.eigen(np.matmul(np.matmul(D_sqrt_inv, L), D_sqrt_inv))
+    y2 = np.dot(np.linalg.inv(D_sqrt), eigen_vectors[-2])
+    print(y2)
+
+    ##4_b
+    print("Task 4 (b) ...")
+
+    characters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+    C1 = set()
+    C2 = set()
+    for index, value in enumerate(y2):
+        if value < 0:
+            C1.add(characters[index])
+        else:
+            C2.add(characters[index])
+    print("Cluster 1: ", C1)
+    print("Cluster 2: ", C2)
+    weight_sum = 0
+    for index, weight in np.ndenumerate(W):
+        if characters[index[0]] in C1 and \
+                characters[index[1]] in C2:
+            weight_sum += weight
+
+    cost = (weight_sum) / len(C1) + (weight_sum) / len(C2)
+    print("Cost: ", cost)
 
 
 ##############################################
@@ -204,11 +248,13 @@ def task_4_a():
 ##############################################
 
 if __name__ == "__main__":
-    #task_1_a()
-    #task_1_b()
+
+    task_1_a()
+    task_1_b()
     task_2()
    # task_3_a()
    # task_3_b()
    # task_3_c()
-   # task_4_a()
+    task_4_a()
+
 
