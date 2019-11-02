@@ -3,7 +3,11 @@ import cv2 as cv
 import random
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-from scipy.linalg import sqrtm
+
+
+# Authors:
+# Lale Samadfam
+# Seyed Arash Safavi
 
 
 ##############################################
@@ -199,20 +203,31 @@ def task_4_a():
         D[i, i] = np.sum(W[i])
 
     L = D - W
-    _, eigen_values, eigen_vectors = cv.eigen(L)
     D_sqrt = np.sqrt(D)
-
-    ############ shouldn't these two be the same?????????????
-    one = np.ones(vertices)
-    print(np.dot(D_sqrt, one))
-    print(eigen_vectors[-1])
-    ############
+    D_sqrt_inv = np.linalg.inv(D_sqrt)
+    _, eigen_values, eigen_vectors = cv.eigen(np.matmul(np.matmul(D_sqrt_inv, L), D_sqrt_inv))
     y2 = np.dot(np.linalg.inv(D_sqrt), eigen_vectors[-2])
     print(y2)
 
+    ##4_b
+    print("Task 4 (b) ...")
 
-def task_4_b():
-    pass
+    characters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+    C1 = set()
+    C2 = set()
+    for index, value in enumerate(y2):
+        if value < 0:
+            C1.add(characters[index])
+        else:
+            C2.add(characters[index])
+    print("Cluster 1: ", C1)
+    print("Cluster 2: ", C2)
+    cost = 0
+    for index, weight in np.ndenumerate(W):
+        if characters[index[0]] in C1 and \
+                characters[index[1]] in C2:
+            cost += weight
+    print("Cost: ", cost)
 
 
 ##############################################
@@ -220,11 +235,10 @@ def task_4_b():
 ##############################################
 
 if __name__ == "__main__":
-    task_1_a()
-    task_1_b()
+    # task_1_a()
+    # task_1_b()
     # # task_2()
     # task_3_a()
     # task_3_b()
     # task_3_c()
     task_4_a()
-    task_4_b()
