@@ -3,7 +3,7 @@ import numpy as np
 import maxflow
 
 def index_convertor(i, j, col):
-    return i * (col - 1) + j
+    return i * (col - 1) + j + i
 
 
 def is_node(i, j, row, col):
@@ -14,7 +14,6 @@ def is_node(i, j, row, col):
 
 def question_3(I,rho=0.7,pairwise_cost_same=0.005,pairwise_cost_diff=0.2):
     row, col = I.shape[0], I.shape[1]
-    print('original image, shape', I.shape)
 
     ### 1) Define Graph
     g = maxflow.Graph[float]()
@@ -31,14 +30,10 @@ def question_3(I,rho=0.7,pairwise_cost_same=0.005,pairwise_cost_diff=0.2):
             unary_cost[i][j][0] = -1 * np.log((rho ** x) * (1 - rho) ** (1 - x))
             unary_cost[i][j][1] = -1 * np.log(((1 - rho) ** x) * (rho ** (1 - x)))
             #print('x, u0, u1', x, unary_cost[i][j][0], unary_cost[i][j][1])
-    a = 0
+
     ### 4) Add terminal edges
     for i in range(row):
         for j in range(col):
-            print(i, j, nodes[index_convertor(i, j, col)])
-            input('here')
-            a = nodes[index_convertor(i, j, col)]
-
             if i == 0 and j == 0:
                 g.add_tedge(nodes[index_convertor(i, j, col)], unary_cost[i][j][0], unary_cost[i][j][1] +
                             pairwise_cost_same)  #check if col is compatible #TODO
@@ -55,9 +50,9 @@ def question_3(I,rho=0.7,pairwise_cost_same=0.005,pairwise_cost_diff=0.2):
     ### Vertical Edges
     for i in range(row):
         for j in range(col):
-            if is_node(i, j, row, col):
+            if is_node(i, j + 1, row, col):
                 right_edge = index_convertor(i, j + 1, col)
-                g.add_edge(index_convertor(i, j, col), right_edge, pairwise_cost_diff - 2 * pairwise_cost_same, pairwise_cost_diff )
+                g.add_edge(nodes[index_convertor(i, j, col)], nodes[right_edge], pairwise_cost_diff - 2 * pairwise_cost_same, pairwise_cost_diff )
 
     ### Horizontal edges
     # (Keep in mind the stucture of neighbourhood and set the weights according to the pairwise potential)
@@ -65,7 +60,7 @@ def question_3(I,rho=0.7,pairwise_cost_same=0.005,pairwise_cost_diff=0.2):
         for j in range(col):
             if is_node(i + 1, j, row, col):
                 bottom_edge = index_convertor(i + 1, j, col)
-                g.add_edge(index_convertor(i, j, col), bottom_edge, pairwise_cost_diff - 2 * pairwise_cost_same,
+                g.add_edge(nodes[index_convertor(i, j, col)], nodes[bottom_edge], pairwise_cost_diff - 2 * pairwise_cost_same,
                            pairwise_cost_diff)
 
     ### 6) Maxflow
