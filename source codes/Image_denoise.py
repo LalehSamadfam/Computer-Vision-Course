@@ -28,20 +28,28 @@ def question_3(I,rho=0.7,pairwise_cost_same=0.005,pairwise_cost_diff=0.2):
     for i in range(unary_cost.shape[0]):
         for j in range(unary_cost.shape[1]):
             x = I[i][j]
-            unary_cost[i][j][0] = -1 * np.log((rho ** x) * (1 - rho) ** x)
+            unary_cost[i][j][0] = -1 * np.log((rho ** x) * (1 - rho) ** (1 - x))
             unary_cost[i][j][1] = -1 * np.log(((1 - rho) ** x) * (rho ** (1 - x)))
-            print(i, j, unary_cost[i][j][0], unary_cost[i][j][1])
-
+            #print('x, u0, u1', x, unary_cost[i][j][0], unary_cost[i][j][1])
+    a = 0
     ### 4) Add terminal edges
     for i in range(row):
         for j in range(col):
-            if (i == 0 and j == 0):
-                g.add_tedge(nodes[index_convertor(i, j, col)], unary_cost[i][j][0], unary_cost[i][j][1] + pairwise_cost_same)  #check if col is compatible #TODO
+            print(i, j, nodes[index_convertor(i, j, col)])
+            input('here')
+            a = nodes[index_convertor(i, j, col)]
+
+            if i == 0 and j == 0:
+                g.add_tedge(nodes[index_convertor(i, j, col)], unary_cost[i][j][0], unary_cost[i][j][1] +
+                            pairwise_cost_same)  #check if col is compatible #TODO
             elif i == row - 1 and j == col - 1:
                 g.add_tedge(nodes[index_convertor(i, j, col)], unary_cost[i][j][0] + pairwise_cost_same,
                             unary_cost[i][j][1])
             else:
-                g.add_tedge(nodes[index_convertor(i, j, col)], unary_cost[i][j][0] + pairwise_cost_same, unary_cost[i][j][1] + pairwise_cost_same)
+                g.add_tedge(nodes[index_convertor(i, j, col)], unary_cost[i][j][0] + pairwise_cost_same,
+                            unary_cost[i][j][1] + pairwise_cost_same)
+
+            #print(g.g)
 
     ### 5) Add Node edges
     ### Vertical Edges
@@ -63,11 +71,11 @@ def question_3(I,rho=0.7,pairwise_cost_same=0.005,pairwise_cost_diff=0.2):
     ### 6) Maxflow
     g.maxflow()
     Denoised_I = np.zeros_like(I)
-    print(Denoised_I.shape)
 
     for i in range(row):
         for j in range(col):
-            Denoised_I = g.get_segment(nodes[index_convertor(i, j, col)])
+            Denoised_I[i][j] = g.get_segment(nodes[index_convertor(i, j, col)])
+
 
     cv2.imshow('Original Img', I), \
     cv2.imshow('Denoised Img', Denoised_I), cv2.waitKey(0), cv2.destroyAllWindows()
