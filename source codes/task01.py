@@ -63,7 +63,7 @@ def elasticity(vertices, vertex1, vertex2, state, prev_state, d):
     x, y = get_state_position(state)
     x_p, y_p = get_state_position(prev_state)
     cost = (np.sqrt(((vertices[vertex1][0] + x) - (vertices[vertex2][0] + x_p)) ** 2 +
-                    ((vertices[vertex1][1] + y) - (vertices[vertex2][1] + y_p)) ** 2) - d) ** 2
+                   ((vertices[vertex1][1] + y) - (vertices[vertex2][1] + y_p)) ** 2) - 0) ** 2
     return cost
 
 
@@ -97,20 +97,19 @@ def unary_cost(state, vertex, grad_x, grad_y):  # external cost
     x, y = get_state_position(state)
     i = vertex[0] + x
     j = vertex[1] + y
-    if i >= grad_x.shape[0] or j >= grad_x.shape[1] :
+    if i >= grad_x.shape[0] or j >= grad_x.shape[1]:
         return 1000
     else:
-        return -1 * ((grad_x[i][j]) ** 2 + (grad_y[i][j]) ** 2)
+        return -1 * np.sqrt((grad_x[i][j]) ** 2 + (grad_y[i][j]) ** 2)
 
 
 # FUNCTIONS
-def find_path(mat, vertices, image, mean_dist):
-    alpha = 150
-    image = cv2.GaussianBlur(image, (5, 5), 0)
-    grad_x, grad_y = np.gradient(image)
+def find_path(mat, vertices, grad_x, grad_y, mean_dist):
+    alpha = 0.1
     for i in range(mat.shape[0]):
         mat[i][1] = alpha * binary_cost(vertices, 1, 0, i, 4, mean_dist) + unary_cost(i, vertices[1], grad_x, grad_y)
     min_paths = np.zeros((mat.shape[0], mat.shape[1]))
+
     for i in range(mat.shape[0]):
         min_paths[i][1] = 4
     for j in range(2, mat.shape[1] - 1):
@@ -120,7 +119,6 @@ def find_path(mat, vertices, image, mean_dist):
             for k in range(costs.size):
                 binary = binary_cost(vertices, j, j - 1, i, k, mean_dist)
                 costs[k] = alpha * binary + mat[k][j - 1]
-
             mat[i][j] = np.min(costs) + unary
             single_path = np.argmin(costs)
             min_paths[i][j] = single_path
@@ -141,14 +139,15 @@ def find_path(mat, vertices, image, mean_dist):
         end_vertex = int(min_paths[end_vertex][min_paths.shape[1] - j - 2])
         path.append(end_vertex)
     path = path[::-1]
+
     return path
 
 
-def update_cost(mat, vertices, image, mean_dist):
+def update_cost(mat, vertices, grad_x, grad_y, mean_dist):
     fixed_vertex = np.random.randint(vertices.shape[0])
     rolled = np.roll(vertices, 2 * fixed_vertex)
-    rolled_path = find_path(mat, rolled, image, mean_dist)
-    path = np.roll(rolled_path, -2 * fixed_vertex)
+    rolled_path = find_path(mat, rolled, grad_x, grad_y, mean_dist)
+    path = np.roll(rolled_path, -1 * fixed_vertex)
     return path
 
 
@@ -180,10 +179,12 @@ def run(fpath, radius):
     ax = fig.add_subplot(111)
     n_steps = 200
     states = 9
+    image = cv2.GaussianBlur(Im, (5, 5), 0)
+    grad_x, grad_y = np.gradient(image)
     for t in range(n_steps):
         mean_dist = mean_eu_dist(V)
         cost_mat = np.zeros((states, V.shape[0] + 1))
-        path = update_cost(cost_mat, V, Im, mean_dist)
+        path = update_cost(cost_mat, V, grad_x, grad_y, mean_dist)
         V = update_vertices(V, path)
         ax.clear()
         ax.imshow(Im, cmap='gray')
@@ -195,4 +196,4 @@ def run(fpath, radius):
 
 if __name__ == '__main__':
     run('images/ball.png', radius=120)
-    #run('images/coffee.png', radius=100)
+    run('images/coffee.png', radius=100)
