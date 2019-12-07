@@ -17,9 +17,10 @@ class KalmanFilter(object):
         self.state = None
         self.covariance = None
         self.tau = tau
-        self.c = 0.01  # may need to be changed
+        self.c = 1  # may need to be changed
 
     def init(self, init_state):
+        self.state = np.zeros((self.tau, 4))
         self.state = init_state
         self.covariance = np.array([[self.c, 0, 0, 0],
                                     [0, self.c, 0, 0],
@@ -27,6 +28,10 @@ class KalmanFilter(object):
                                     [0, 0, 0, self.c]])
     def track(self, xt):
         # state_prediction
+        state_trans_mat = np.zeros((self.tau + 1 , self.tau + 1, 4, 4))
+        state_trans_mat[0][0] = self.psi
+        for i in range(self.tau - 1):
+            state_trans_mat[i + 1][i] = np.eye(4)
         state_predicted = np.dot(self.psi, self.state)
 
         # cov_prediction
@@ -35,14 +40,14 @@ class KalmanFilter(object):
         # Kalman gain
         inner = np.dot(self.phi, np.dot(cov_predicted, np.transpose(self.phi)))
         right = np.linalg.inv(self.sigma_m + inner)
-        kalman_gain = np.matmul(np.matmul(cov_predicted, np.transpose(self.phi)), right)
+        kalman_gain = np.dot(np.dot(cov_predicted, np.transpose(self.phi)), right)
 
         # state_update
-        self.state = state_predicted + np.matmul(kalman_gain, xt - np.matmul(self.phi, state_predicted))
+        self.state = state_predicted + np.dot(kalman_gain, xt - np.dot(self.phi, state_predicted))
 
         # cov_update
-        right = np.matmul(kalman_gain, self.phi)
-        self.convariance = np.matmul(np.eye(4) - right, cov_predicted)
+        right = np.dot(kalman_gain, self.phi)
+        self.convariance = np.dot(np.eye(4) - right, cov_predicted)
 
     def get_current_location(self):
         return [self.state[0], self.state[1]]
@@ -78,16 +83,16 @@ def main():
     tracker = KalmanFilter(psi, sigma_p, phi, sigma_m, tau=0)
     tracker.init(init_state)
 
-    #fixed_lag_smoother = KalmanFilter(psi, sigma_p, phi, sigma_m, tau=5)
-    #fixed_lag_smoother.init(init_state)
+    fixed_lag_smoother = KalmanFilter(psi, sigma_p, phi, sigma_m, tau=5)
+    fixed_lag_smoother.init(init_state)
 
     track = perform_tracking(tracker)
-    # track_smoothed = perform_tracking(fixed_lag_smoother)
+    track_smoothed = perform_tracking(fixed_lag_smoother)
 
     plt.figure()
     plt.plot([x[0] for x in observations], [x[1] for x in observations])
     plt.plot([x[0] for x in track], [x[1] for x in track])
-    # plt.plot([x[0] for x in track_smoothed], [x[1] for x in track_smoothed])
+    plt.plot([x[0] for x in track_smoothed], [x[1] for x in track_smoothed])
 
     plt.show()
 
