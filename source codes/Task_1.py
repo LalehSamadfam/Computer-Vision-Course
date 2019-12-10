@@ -27,10 +27,10 @@ def task_1():
 
 	data = np.loadtxt('./data/hand_landmarks.txt', dtype=str, delimiter='(,)')
 
-	kernel = np.ones((3, 3), np.float64) / 9
+	kernel = np.ones((5, 5), np.float64) / 25
 	image = cv.filter2D(image, -1, kernel)
 
-	image = cv.blur(image, (3, 3))
+	image = cv.blur(image, (5, 5))
 
 	landmarks = np.zeros((data.shape[0], 2))
 	for x in range(data.shape[0]):
@@ -43,12 +43,6 @@ def task_1():
 
 	fig = plt.figure(figsize=(10, 10))
 	ax = fig.add_subplot(111)
-
-	# ax.clear()
-	# ax.imshow(image, cmap='gray')
-	# # ax.set_title('frame ' + str(t))
-	# plot_snake(ax, landmarks[:, 0:2])
-	# plt.show()
 
 	# 1. canny edge detection
 	tr1 = 50
@@ -64,15 +58,6 @@ def task_1():
 	dist = cv.distanceTransform(edges, cv.DIST_L1, 3)
 
 	cv.normalize(dist, dist, 0, 1.0, cv.NORM_MINMAX)
-	# dist = dist / np.max(dist)
-
-	# cv.imshow('Distance Transform Image', dist)
-	# cv.waitKey(0)
-	# cv.destroyAllWindows()
-
-	# 3. random init psi
-
-	psi = np.identity(3)
 
 	Gx = np.zeros_like(dist)
 	Gy = np.zeros_like(dist)
@@ -94,13 +79,6 @@ def task_1():
 			Gx[i, j] = (dist[i + 1, j] - dist[i - 1, j]) / 2
 			Gy[i, j] = (dist[i, j+1] - dist[i, j-1]) / 2
 
-	# cv.imshow('e', Gx)
-	# cv.waitKey(0)
-	# cv.destroyAllWindows()
-    #
-	# cv.imshow('e', Gy)
-	# cv.waitKey(0)
-	# cv.destroyAllWindows()
 
 
 	# 4. iterate:
@@ -113,40 +91,22 @@ def task_1():
 
 		for x in range(old_landmarks.shape[0]):
 
-			temp = [old_landmarks[x,0],old_landmarks[x,1],1]
-			temp = np.asarray(temp).reshape(1,3)
-
-			tt = np.matmul(temp,psi).T
-			old_landmarks[x,0] = tt[0]/tt[2]
-			old_landmarks[x,1] = tt[1]/tt[2]
-
 			# 4.2. choose closest point
 			w_prim = np.abs(old_landmarks[x,:])
-			scnd_idx = np.abs(int(w_prim[0]))
-			frst_idx = np.abs(int(w_prim[1]))
+			scnd_idx = np.abs(int(w_prim[1]))
+			frst_idx = np.abs(int(w_prim[0]))
 
-			if frst_idx>=image.shape[1] :
-				frst_idx = image.shape[1]-1
+			if frst_idx>=image.shape[0] :
+				frst_idx = image.shape[0]-1
 
-			if scnd_idx>=image.shape[0] :
-				scnd_idx = image.shape[0]-1
+			if scnd_idx>=image.shape[1] :
+				scnd_idx = image.shape[1]-1
 
 
 			nominator = dist[frst_idx,scnd_idx]
 			denominator = np.sqrt(Gx[frst_idx,scnd_idx]**2+Gy[frst_idx,scnd_idx]**2)
 
-			if Gx[frst_idx,scnd_idx]==0 or Gy[frst_idx,scnd_idx]==0:
-				closest_point = w_prim
-				new_landmarks[x, :] = np.abs(closest_point)
-				continue
-
 			if Gx[frst_idx,scnd_idx]==0 and Gy[frst_idx,scnd_idx]==0:
-
-				continue
-
-			if dist[frst_idx,scnd_idx]==0 :
-				closest_point = w_prim
-				new_landmarks[x, :] = np.abs(closest_point)
 				continue
 
 
@@ -175,13 +135,10 @@ def task_1():
 
 		old_landmarks = landmarks
 
-		ax.clear()
-		ax.imshow(image, cmap='gray')
-		# ax.set_title('frame ' + str(t))
-		plot(ax, new_landmarks[:,0:2])
-		plt.show()
-		# plt.pause(0.01)
-
+	print('estimated psi: ', psi)
+	ax.imshow(image, cmap='gray')
+	plot(ax, new_landmarks[:, 0:2])
+	plt.show()
 
 
 
