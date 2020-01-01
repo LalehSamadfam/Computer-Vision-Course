@@ -57,13 +57,116 @@ class OpticalFlow:
     def flow_map_to_bgr(self, flow):
         flow_bgr = None
 
+
+
+        hsv = np.zeros((flow.shape[0]* flow.shape[1],3))
+        hsv[..., 1] = 255
+        # yasy
+        # print(flow[...,0].flatten().shape)
+        # print(flow[...,1].flatten().shape)
+
+        mag, ang = cv.cartToPolar(flow[..., 0].flatten(), flow[..., 1].flatten())
+        hsv[..., 0] = (ang * 180 / np.pi / 2).reshape(ang.shape[0])
+        hsv[..., 2] = (cv.normalize(mag, None, 0, 255, cv.NORM_MINMAX)).reshape(ang.shape[0])
+        hsv = hsv.reshape(flow.shape[0], flow.shape[1],3).astype(np.float32)
+
+        # cv.imshow('hsv', hsv)
+        # cv.waitKey(0)
+        # cv.destroyAllWindows()
+
+        # inja tabdil be bgr ke mishe ye etefaghi miofte meshkish mikone
+
+        flow_bgr = cv.cvtColor(hsv, cv.COLOR_HSV2BGR)
+
+
         return flow_bgr
 
     #***********************************************************************************
+    def compute_uv(self, Ix, Iy, It):
+        # in order to make matrix I
+        first = np.sum(np.matmul( Ix , Ix))
+        second = np.sum(np.matmul(Ix , Iy))
+        third = np.sum(np.matmul(Ix , Iy))
+        fourth = np.sum(np.matmul(Iy , Iy))
+
+        ATA = np.zeros((2, 2))
+        ATA[0, 0] = first
+        ATA[0, 1] = second
+        ATA[1, 0] = third
+        ATA[1, 1] = fourth
+
+        b1 = np.sum(np.matmul(Ix, It))
+        b2 = np.sum(np.matmul(Iy, It))
+
+        ATb = np.zeros((2, 1))
+        ATb[0] = -b1
+        ATb[1] = -b2
+
+        uv = np.matmul(np.linalg.inv(ATA),ATb)
+
+        return uv
     # implement Lucas-Kanade Optical Flow 
     # returns the Optical flow based on the Lucas-Kanade algorithm and visualisation result
     def Lucas_Kanade_flow(self):
         flow = None
+
+
+        current_frame = self.next
+
+        flow = np.zeros((current_frame.shape[0], current_frame.shape[1], 2))
+        u = np.zeros((current_frame.shape[0], current_frame.shape[1]))
+        v = np.zeros((current_frame.shape[0], current_frame.shape[1]))
+        half_window_size = int(self.WINDOW_SIZE[0] / 2)
+        # for i in range(half_window_size, current_frame.shape[0]-half_window_size):
+        #     for j in range(half_window_size, current_frame.shape[1]-half_window_size):
+        #
+        #         ind1 = i - half_window_size
+        #         ind2 = i + half_window_size
+        #         ind3 = j - half_window_size
+        #         ind4 = j + half_window_size
+        #
+        #         if i - half_window_size < 0: ind1 = 0
+        #         if j - half_window_size < 0: ind3 = 0
+        #         if i + half_window_size >= current_frame.shape[0]: ind2 = current_frame.shape[0] - 1
+        #         if j + half_window_size >= current_frame.shape[1]: ind2 = current_frame.shape[1] - 1
+        #
+        #         window_Ix = self.Ix[ind1:ind2 + 1, ind3:ind4 + 1]
+        #         window_Iy = self.Iy[ind1:ind2 + 1, ind3:ind4 + 1]
+        #
+        #         window_It = self.It[ind1:ind2 + 1, ind3:ind4 + 1]
+        #
+        #         uv = self.compute_uv(window_Ix, window_Iy, window_It)
+        #
+        #         u[i,j] = uv[0]
+        #         v[i,j] = uv[1]
+        #         if abs(u[i, j]) > self.EIGEN_THRESHOLD or abs(v[i, j]) > self.EIGEN_THRESHOLD:
+        #             flow[i,j,:] = uv.reshape(2,)
+
+        # calculate the gradient product accumulations for each pixel
+        Sxx = cv.boxFilter(self.Ix ** 2, -1, ksize=(half_window_size,) * 2, normalize=True)
+        Sxy = cv.boxFilter(self.Ix * self.Iy, -1, ksize=(half_window_size,) * 2, normalize=True)
+        Syy = cv.boxFilter(self.Iy ** 2, -1, ksize=(half_window_size,) * 2, normalize=True)
+        Sxt = cv.boxFilter(self.Ix * self.It, -1, ksize=(half_window_size,) * 2, normalize=True)
+        Syt = cv.boxFilter(self.Iy * self.It, -1, ksize=(half_window_size,) * 2, normalize=True)
+        # del It, Ix, Iy
+
+        # calculate the displacement matrices U, V
+        rows, cols = current_frame.shape
+        flow = np.zeros((rows, cols, 2), dtype=np.float32)
+        A = np.dstack((Sxx, Sxy, Sxy, Syy))
+        b = np.dstack((-Sxt, -Syt))
+        for r in range(rows):
+            for c in range(cols):
+                flow[r, c, :] = np.linalg.lstsq(A[r, c].reshape((2, 2)), b[r, c])[0]
+
+        # cv.imshow('u', u)
+        # cv.waitKey(0)
+        # cv.destroyAllWindows()
+        #
+        # cv.imshow('v', v)
+        # cv.waitKey(0)
+        # cv.destroyAllWindows()
+
 
         flow_bgr = self.flow_map_to_bgr(flow)
         return flow, flow_bgr
@@ -73,6 +176,50 @@ class OpticalFlow:
     # returns the Optical flow based on the Horn-Schunck algorithm and visualisation result
     def Horn_Schunck_flow(self):
         flow = None
+
+        current_frame = self.next
+
+        flow = np.zeros((current_frame.shape[0], current_frame.shape[1], 2))
+        u = np.zeros((current_frame.shape[0], current_frame.shape[1]))
+        v = np.zeros((current_frame.shape[0], current_frame.shape[1]))
+        half_window_size = int(self.WINDOW_SIZE[0] / 2)
+        convergance = False
+        k = np.array([[0, 1/4, 0],
+                   [1/4,    -1, 1/4],
+                   [0, 1/4, 0]])
+        alpha = 1
+
+        while(not convergance):
+
+            prev_u = u
+            prev_v = v
+
+            delta_u = cv.filter2D(u, -1, k)
+            delta_v = cv.filter2D(v, -1, k)
+
+            u_bar = u + delta_u
+            v_bar = v + delta_v
+
+            der = (self.Ix*u_bar + self.Iy*v_bar + self.It)/(alpha**2 + self.Ix**2 + self.Iy**2)
+
+            u = u_bar - (self.Ix * der)
+            v = v_bar - (self.Iy * der)
+
+            diff = np.sum(np.abs(u - prev_u) + np.abs(v - prev_v))
+            print('diff: ', diff)
+            if(diff < 0.002):
+                convergance = True
+
+        flow[..., 0] = u
+        flow[..., 1] = v
+
+        cv.imshow('u', u)
+        cv.waitKey(0)
+        cv.destroyAllWindows()
+
+        cv.imshow('v', v)
+        cv.waitKey(0)
+        cv.destroyAllWindows()
 
         flow_bgr = self.flow_map_to_bgr(flow)
         return flow, flow_bgr
@@ -84,6 +231,25 @@ class OpticalFlow:
         aae = None
         aae_per_point = None
 
+        uc= groundtruth_flow[..., 0].flatten()
+        vc= groundtruth_flow[..., 1].flatten()
+
+        u = estimated_flow[..., 0].flatten()
+        v = estimated_flow[..., 1].flatten()
+
+        n = u.shape[0]
+        sum = 0
+        aae_per_point = np.zeros((n,1))
+        for i in range (n):
+            nominator = uc[i]*u[i] + vc[i]*v[i] + 1
+            denominator = np.sqrt((uc[i]**2 + vc[i]**2 + 1) + (u[i]**2 + v[i]**2 + 1))
+            # sum += np.arccos(nominator/denominator)
+            # if (np.isnan(sum)):
+            #     break
+            aae_per_point[i] = np.arccos(nominator/denominator)
+
+        aae = np.sum(aae_per_point, dtype=np.int64)/n
+        aae_per_point = aae_per_point.reshape(estimated_flow.shape[0] , estimated_flow.shape[1])
         return aae, aae_per_point
 
 
@@ -114,8 +280,8 @@ if __name__ == "__main__":
         print('Average Angular error for Luacas-Kanade Optical Flow: %.4f' %(aae_lucas_kanade))
 
         flow_horn_schunck, flow_horn_schunck_bgr = Op.Horn_Schunck_flow()
-        aae_horn_schunk, aae_horn_schunk_per_point = Op.calculate_angular_error(flow_horn_schunck, groundtruth_flow)        
-        print('Average Angular error for Horn-Schunck Optical Flow: %.4f' %(aae_horn_schunk))   
+        aae_horn_schunk, aae_horn_schunk_per_point = Op.calculate_angular_error(flow_horn_schunck, groundtruth_flow)
+        print('Average Angular error for Horn-Schunck Optical Flow: %.4f' %(aae_horn_schunk))
 
         flow_bgr_gt = Op.flow_map_to_bgr(groundtruth_flow)
 
